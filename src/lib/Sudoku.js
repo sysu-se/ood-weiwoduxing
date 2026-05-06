@@ -105,17 +105,18 @@ export class Sudoku{
 }
 
   /**
-   * 在指定位置进行一次猜测（遵循数独规则）
+   * 在指定位置进行一次猜测
+   * 直接修改内部棋盘（可变操作），返回自身以供链式调用
+   * 允许冲突输入，由 UI 侧 invalidCells derived store 高亮提示
    * @param {object} move - 猜测动作
    * @param {number} move.row - 行 0~8
    * @param {number} move.col - 列 0~8
    * @param {number|null} move.value - 猜测值，0/null=清空，1~9=数字
-   * @returns {Sudoku|null} 返回猜测后的新副本，非法则为null
+   * @returns {this|null} 猜测成功返回自身，非法操作返回 null
    */
   guess(move){
     const {row, col, value} = move;
 
-    // 坐标越界检查
     if (row < 0 || row >= 9 || col < 0 || col >= 9){
       return null;
     }
@@ -125,18 +126,13 @@ export class Sudoku{
       return null;
     }
 
-    // 值合法性检查（0-9，null → 0）
     let val = value == null ? 0 : value;
     if (val < 0 || val > 9){
       return null;
     }
 
-    // 允许冲突输入，由 UI 侧（invalidCells derived store）高亮提示（反馈 #2）
-    const newGrid = this.#grid.map((rowArr, r) => 
-      r === row ? rowArr.map((cell, c) => c === col ? val : cell) : [...rowArr]);
-
-
-    return new Sudoku(newGrid, this.#question);
+    this.#grid[row][col] = val;
+    return this;
   }
 
   /**
