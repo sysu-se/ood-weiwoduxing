@@ -1,10 +1,9 @@
 <script>
-	import { userGrid } from '@sudoku/stores/grid';
+	import { userGrid, cellKey } from '@sudoku/stores/grid';
 	import { cursor } from '@sudoku/stores/cursor';
 	import { notes } from '@sudoku/stores/notes';
 	import { candidates } from '@sudoku/stores/candidates';
 
-	// TODO: Improve keyboardDisabled
 	import { keyboardDisabled } from '@sudoku/stores/keyboard';
 
 	function handleKeyButton(num) {
@@ -17,7 +16,7 @@
 				}
 				userGrid.set($cursor, 0);
 			} else {
-				if ($candidates.hasOwnProperty($cursor.x + ',' + $cursor.y)) {
+				if ($candidates.hasOwnProperty(cellKey($cursor.x, $cursor.y))) {
 					candidates.clear($cursor);
 				}
 
@@ -27,62 +26,50 @@
 	}
 
 	function handleKey(e) {
-		switch (e.key || e.keyCode) {
+		switch (e.key) {
 			case 'ArrowUp':
-			case 38:
 			case 'w':
-			case 87:
 				cursor.move(0, -1);
 				break;
 
 			case 'ArrowDown':
-			case 40:
 			case 's':
-			case 83:
 				cursor.move(0, 1);
 				break;
 
 			case 'ArrowLeft':
-			case 37:
 			case 'a':
-			case 65:
 				cursor.move(-1);
 				break;
 
 			case 'ArrowRight':
-			case 39:
 			case 'd':
-			case 68:
 				cursor.move(1);
 				break;
 
 			case 'Backspace':
-			case 8:
 			case 'Delete':
-			case 46:
 				handleKeyButton(0);
 				break;
 
 			default:
-				if (e.key && e.key * 1 >= 0 && e.key * 1 < 10) {
-					handleKeyButton(e.key * 1);
-				} else if (e.keyCode - 48 >= 0 && e.keyCode - 48 < 10) {
-					handleKeyButton(e.keyCode - 48);
+				if (e.key >= '0' && e.key <= '9') {
+					handleKeyButton(parseInt(e.key, 10));
 				}
 				break;
 		}
 	}
 </script>
 
-<svelte:window on:keydown={handleKey} /><!--on:beforeunload|preventDefault={e => e.returnValue = ''} />-->
+<svelte:window on:keydown={handleKey} />
 
 <div class="keyboard-grid">
 
 	{#each Array(10) as _, keyNum}
 		{#if keyNum === 9}
-			<button class="btn btn-key" disabled={$keyboardDisabled} title="Erase Field" on:click={() => handleKeyButton(0)}>
+			<button class="btn btn-key" disabled={$keyboardDisabled} title="清除选定格" on:click={() => handleKeyButton(0)}>
 				<svg class="icon-outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l3.343 3.343a2 2 0 001.414.586H19a2 2 0 002-2V8a2 2 0 00-2-2H7.757a2 2 0 00-1.414.586L3 12z" />
 				</svg>
 			</button>
 		{:else}
