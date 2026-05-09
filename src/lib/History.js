@@ -227,8 +227,19 @@ export class History{
      * @returns {number|null}
      */
     getCurrentNodeId(){
-        return this.#currentNode?.id || null;
+        return this.#currentNode ? this.#currentNode.id : null;
     }
+
+	/**
+	 * 获取指定节点 ID 的子节点数量（5.8）
+	 * 用于探索模式下查询分支根节点的分支数量
+	 * @param {number} nodeId - 目标节点 ID
+	 * @returns {number} 子节点数量，节点不存在返回 0
+	 */
+	getChildrenCount(nodeId){
+		const node = this.findNodeById(nodeId);
+		return node ? node.children.length : 0;
+	}
 
     /**
      * 获取当前节点的所有子节点（分支列表）
