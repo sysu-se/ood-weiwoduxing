@@ -3,7 +3,7 @@
 
 	export let candidates = [];
 	/**
-	 * 渲染变体：'notes' 为用户手动笔记（默认灰色），'hint' 为系统提示候选数（区分色）
+	 * 渲染变体：'notes' 为用户手动笔记（灰色），'hint' 为系统提示候选数（teal 色区分）
 	 */
 	export let variant = 'notes';
 </script>
@@ -33,8 +33,8 @@
 		@apply text-gray-500 text-xs;
 	}
 
-	/* 系统提示：teal 色中号字，与题目/填入数明显区分 */
+	/* 系统提示：teal 色加粗小字，与灰色笔记明显区分 */
 	.visible-hint {
-		@apply text-gray-500 text-xs font-semibold;
+		@apply text-teal-600 text-xs font-semibold;
 	}
 </style>
