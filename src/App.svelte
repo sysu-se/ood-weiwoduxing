@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { validateSencode } from '@sudoku/sencode';
 	import game from '@sudoku/game';
 	import { modal } from '@sudoku/stores/modal';
@@ -9,11 +9,15 @@
 	import Header from './components/Header/index.svelte';
 	import Modal from './components/Modal/index.svelte';
 
-	gameWon.subscribe(won => {
+	const unsubGameWon = gameWon.subscribe(won => {
 		if (won) {
 			game.pause();
 			modal.show('gameover');
 		}
+	});
+
+	onDestroy(() => {
+		if (unsubGameWon) unsubGameWon();
 	});
 
 	onMount(() => {
