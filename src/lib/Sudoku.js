@@ -105,6 +105,54 @@ export class Sudoku{
 }
 
   /**
+   * 计算指定格子的候选数集合
+   * 排除当前行、列、3x3 宫内已出现的数字后，剩余可填数字的集合
+   * @param {number} row - 行号 0~8
+   * @param {number} col - 列号 0~8
+   * @returns {Set<number>} 候选数字集合（1~9 的子集）
+   */
+  getCandidates(row, col){
+    // 从全集合 {1..9} 出发，逐一排除同行/同列/同宫已出现的数字
+    const nums = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    for(let c = 0; c < 9; c++){
+      if(this.#grid[row][c] !== 0) nums.delete(this.#grid[row][c]);
+    }
+
+    for(let r = 0; r < 9; r++){
+      if(this.#grid[r][col] !== 0) nums.delete(this.#grid[r][col]);
+    }
+
+    const br = Math.floor(row / 3) * 3;
+    const bc = Math.floor(col / 3) * 3;
+    for(let r = br; r < br + 3; r++){
+      for(let c = bc; c < bc + 3; c++){
+        if(this.#grid[r][c] !== 0) nums.delete(this.#grid[r][c]);
+      }
+    }
+
+    return nums;
+  }
+
+  /**
+   * 查找下一步可唯一确定的格子（推定值）
+   * 遍历所有空格，返回第一个候选数恰好只有 1 个的位置与值
+   * @returns {{row:number, col:number, value:number}|null} 推定格子信息，无则返回 null
+   */
+  findNextHint(){
+    for(let row = 0; row < 9; row++){
+      for(let col = 0; col < 9; col++){
+        if(this.#grid[row][col] !== 0) continue;
+        const candidates = this.getCandidates(row, col);
+        if(candidates.size === 1){
+          return {row, col, value: candidates.values().next().value};
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * 在指定位置进行一次猜测
    * 直接修改内部棋盘（可变操作），返回自身以供链式调用
    * 允许冲突输入，由 UI 侧 invalidCells derived store 高亮提示
