@@ -64,7 +64,7 @@ export class Sudoku{
    * @returns {Sudoku} 新实例
    */
   resetToQuestion(){
-    return new Sudoku(this.#question);
+    return new Sudoku(this.#question, this.#question);
   }
 
   /**
@@ -232,6 +232,53 @@ export class Sudoku{
       }
     }
     return true;
+  }
+
+  /**
+   * 获取当前棋盘所有冲突格子的坐标列表
+   * 冲突定义：同一行/列/宫内存在两个非空格子值相同
+   * @returns {string[]} 冲突格子坐标数组，格式 ["x,y", ...]（x=列, y=行）
+   */
+  getConflictingCells(){
+    const conflicts = new Set();
+    for(let row = 0; row < 9; row++){
+      for(let col = 0; col < 9; col++){
+        const value = this.#grid[row][col];
+        if(value === 0) continue;
+
+        // 检查同行
+        for(let c = 0; c < 9; c++){
+          if(c === col) continue;
+          if(this.#grid[row][c] === value){
+            conflicts.add(col + ',' + row);
+            conflicts.add(c + ',' + row);
+          }
+        }
+
+        // 检查同列
+        for(let r = 0; r < 9; r++){
+          if(r === row) continue;
+          if(this.#grid[r][col] === value){
+            conflicts.add(col + ',' + row);
+            conflicts.add(col + ',' + r);
+          }
+        }
+
+        // 检查同宫
+        const br = Math.floor(row / 3) * 3;
+        const bc = Math.floor(col / 3) * 3;
+        for(let r = br; r < br + 3; r++){
+          for(let c = bc; c < bc + 3; c++){
+            if(r === row && c === col) continue;
+            if(this.#grid[r][c] === value){
+              conflicts.add(col + ',' + row);
+              conflicts.add(c + ',' + r);
+            }
+          }
+        }
+      }
+    }
+    return [...conflicts];
   }
 
   /**
