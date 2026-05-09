@@ -91,6 +91,12 @@ export default {
 	watch:   {
 		clearScreen: false,
 	},
+
+	// 抑制第三方 CJS 模块中 'use strict' 被忽略的警告（不影响功能）
+	onwarn(warning, warn) {
+		if (warning.message && warning.message.includes("use-strict")) return;
+		warn(warning);
+	},
 };
 
 function serve() {
