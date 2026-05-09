@@ -40,6 +40,15 @@ export class Game{
     }
 
     /**
+     * 直接获取棋盘 grid 副本
+     * 跳过 getSudoku() 的中间 Sudoku 对象构建，减少一次深拷贝
+     * @returns {number[][]} 9x9 grid 副本
+     */
+    getGridSnapshot(){
+        return this._currentSudoku.getGrid();
+    }
+
+    /**
      * 获取指定格子的候选数集合（提示用）
      * 委托给当前数独实例的推理方法，返回该格所有可能填入的数字
      * @param {number} row - 行号 0~8
@@ -57,6 +66,22 @@ export class Game{
      */
     getNextHint(){
         return this._currentSudoku.findNextHint();
+    }
+
+    /**
+     * 获取当前棋盘所有冲突格子的坐标列表
+     * @returns {string[]} 冲突格子坐标数组
+     */
+    getConflictingCells(){
+        return this._currentSudoku.getConflictingCells();
+    }
+
+    /**
+     * 判断当前棋盘是否已完成（无空格且无冲突）
+     * @returns {boolean}
+     */
+    isCompleted(){
+        return this._currentSudoku.isCompleted();
     }
 
     /**
@@ -78,11 +103,11 @@ export class Game{
             return false;
         }
 
-        const newSudoku = this._currentSudoku.guess(move);
-        if(newSudoku == null) return false;
+        // Sudoku.guess() 为可变操作，直接修改内部棋盘并返回 this
+        const ok = this._currentSudoku.guess(move);
+        if (!ok) return false;
 
         this._history.push({row, col, oldValue, newValue: val});
-        this._currentSudoku = newSudoku;
 
 		// 探索模式：重评估盘面合法性及失败路径指纹，同步冲突信号
 		if (this.#state === GameState.EXPLORING) {
@@ -227,7 +252,7 @@ export class Game{
 		this.#abandonedStates.add(this._getBoardFingerprint());
 
 		// 回滚棋盘到探索原点
-		this._currentSudoku = this.#exploreOrigin.snapshot();
+		this._currentSudoku = this.#exploreOrigin;
 
 		// History 跳回分支锚点并剪除所有探索分支
 		this._history.jumpToNode(this.#branchRootId);
@@ -334,12 +359,44 @@ export class Game{
 
         // 清空历史记录
         this._history.clear();
+
+        // 重置探索状态
+        this.#state = GameState.NORMAL;
+        this.#exploreOrigin = null;
+        this.#branchRootId = null;
+        this.#exploreWarning = null;
+        this.#conflictStates.clear();
+        this.#abandonedStates.clear();
     }
 
     toJSON(){
         return {
             current: this._currentSudoku.toJSON(),
-            history: this._history.toJSON()
+            history: this._history.toJSON(),
+            explore: {
+                state: this.#state,
+                exploreOrigin: this.#exploreOrigin ? this.#exploreOrigin.toJSON() : null,
+                branchRootId: this.#branchRootId,
+                exploreWarning: this.#exploreWarning,
+                conflictStates: [...this.#conflictStates],
+                abandonedStates: [...this.#abandonedStates],
+            }
+        }
+    }
+
+    /**
+     * 从序列化数据恢复探索模式状态（内部方法，仅 createGameFromJSON 使用）
+     * @param {object} exploreData - toJSON() 输出的 explore 字段
+     */
+    _restoreExploreState(exploreData){
+        if (!exploreData) return;
+        this.#state = exploreData.state || GameState.NORMAL;
+        this.#branchRootId = exploreData.branchRootId ?? null;
+        this.#exploreWarning = exploreData.exploreWarning ?? null;
+        this.#conflictStates = new Set(exploreData.conflictStates || []);
+        this.#abandonedStates = new Set(exploreData.abandonedStates || []);
+        if (exploreData.exploreOrigin) {
+            this.#exploreOrigin = createSudokuFromJSON(exploreData.exploreOrigin);
         }
     }
 
@@ -375,6 +432,12 @@ export function createGameFromJSON(json){
     const history = History.fromJSON(data.history);
 
     // 构建游戏对象
-    const game = new Game(current,history);
+    const game = new Game(current, history);
+
+    // 恢复探索模式状态
+    if (data.explore) {
+        game._restoreExploreState(data.explore);
+    }
+
     return game;
 }
