@@ -1,10 +1,11 @@
 <script>
 	import { BOX_SIZE } from '@sudoku/constants';
-	import { gamePaused } from '@sudoku/stores/game';
+	import { gamePaused, isExploring } from '@sudoku/stores/game';
 	import { grid, userGrid, invalidCells } from '@sudoku/stores/grid';
 	import { settings } from '@sudoku/stores/settings';
 	import { cursor } from '@sudoku/stores/cursor';
 	import { candidates } from '@sudoku/stores/candidates';
+	import { hintCandidates } from '@sudoku/stores/hints';
 	import Cell from './Cell.svelte';
 
 	function isSelected(cursorStore, x, y) {
@@ -35,7 +36,9 @@
 	</div>
 	<div class="board-padding absolute inset-0 flex justify-center">
 
-		<div class="bg-white shadow-2xl rounded-xl overflow-hidden w-full h-full max-w-xl grid" class:bg-gray-200={$gamePaused}>
+		<div class="bg-white shadow-2xl rounded-xl overflow-hidden w-full h-full max-w-xl grid"
+		     class:bg-gray-200={$gamePaused}
+		     class:exploring={$isExploring}>
 
 			{#each $userGrid as row, y}
 				{#each row as value, x}
@@ -43,6 +46,7 @@
 					      cellY={y + 1}
 					      cellX={x + 1}
 					      candidates={$candidates[x + ',' + y]}
+					      hintCandidates={$hintCandidates[x + ',' + y]}
 					      disabled={$gamePaused}
 					      selected={isSelected($cursor, x, y)}
 					      userNumber={$grid[y][x] === 0}
@@ -60,5 +64,9 @@
 <style>
 	.board-padding {
 		@apply px-4 pb-4;
+	}
+
+	.exploring {
+		box-shadow: 0 0 0 2px #a78bfa;
 	}
 </style>
