@@ -243,5 +243,3 @@ HW1.1 的 Code Review（`lab3/codex-review.md`）指出了 8 个缺点，HW2 中
 | 失败记忆粒度 | 统一 Set / 分级 Set | 分级（conflict + abandoned） | 用户需区分"客观上走不通"和"我主动放弃的"，决策建议不同 |
 | 提示推理归属 | Sudoku / Game | Sudoku（纯推理）+ Game（编排） | 单一职责：Sudoku 不感知次数/光标，Game 不实现排除法 |
 | History 结构 | 保留多叉树 / 退化为线性栈 | 保留多叉树 | HW1 设计恰好为 HW2 探索分支提供基础，不需重构 |
-| Store 循环引用 | 合并文件 / 提取公共模块 | 提取 explore.js 为叶模块 | 最小改动，不改变 grid.js 和 game.js 的对外接口 |
-| 冲突徽章定位 | 参与 flex 流 / 绝对定位 | 绝对定位 `left: calc(100% + 6px)` | 不推动其他按钮位移，不遮挡棋盘 |
