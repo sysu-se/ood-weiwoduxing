@@ -8,6 +8,8 @@
 	export let cellX;
 	export let cellY;
 	export let candidates;
+	/** 系统提示候选数数组（来自 hintCandidates store），null 表示无提示数据 */
+	export let hintCandidates = null;
 
 	export let disabled;
 	export let conflictingNumber;
@@ -37,10 +39,15 @@
 		     class:conflicting-number={conflictingNumber}>
 
 			<button class="cell-btn" on:click={cursor.set(cellX - 1, cellY - 1)}>
-				{#if candidates}
+				<!-- 渲染优先级：数字 > 提示候选数 > 用户笔记 > 空白 -->
+				{#if value}
+					<span class="cell-text">{value}</span>
+				{:else if hintCandidates && hintCandidates.length > 0}
+					<Candidates candidates={hintCandidates} variant="hint" />
+				{:else if candidates}
 					<Candidates {candidates} />
 				{:else}
-					<span class="cell-text">{value || ''}</span>
+					<span class="cell-text"></span>
 				{/if}
 			</button>
 
